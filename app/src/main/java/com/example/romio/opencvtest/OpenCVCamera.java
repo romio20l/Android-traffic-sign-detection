@@ -1,6 +1,9 @@
 package com.example.romio.opencvtest;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -11,14 +14,28 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
-public class MainActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
+    private static boolean IMG = false;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean mIsJavaCamera = true;
     private MenuItem mItemSwitchCamera = null;
+    Bitmap img;
+    Mat imgSrc,imgDst;
+
+    static {
+        System.loadLibrary("myNativeLibs");
+    }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -41,10 +58,23 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "called onCreate");
+
+        if(getIntent().getStringExtra("imgUri")!=null) {
+            try {
+                final Uri imageUri = Uri.parse(getIntent().getStringExtra("imgUri"));
+                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                img = BitmapFactory.decodeStream(imageStream);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            IMG = true;
+        }
+
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.tutorial1_surface_view);
+        setContentView(R.layout.opencv_camera);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_java_surface_view);
 
@@ -81,13 +111,30 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     }
 
     public void onCameraViewStarted(int width, int height) {
+        imgSrc = new Mat(width,height, CvType.CV_8UC4);
+        if(IMG) {
+            Imgproc.resize(imgSrc,imgSrc,new Size(img.getWidth(),img.getHeight()));
+            Utils.bitmapToMat(img,imgSrc);
+        }
+
+        imgDst = new Mat(width,height, CvType.CV_8UC1);
     }
 
     public void onCameraViewStopped() {
+        imgSrc.release();
+        imgDst.release();
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        return inputFrame.rgba();
+        if(!IMG)
+            imgSrc = inputFrame.rgba();
+
+        //NativeCpp.convert2Grey(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
+
+        Imgproc.resize(imgSrc,imgSrc,inputFrame.rgba().size());
+
+        return imgSrc;
+
     }
 }
 
