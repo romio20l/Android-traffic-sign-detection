@@ -15,13 +15,22 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.opencv.imgproc.Imgproc.CHAIN_APPROX_SIMPLE;
+import static org.opencv.imgproc.Imgproc.RETR_TREE;
 
 public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
@@ -31,7 +40,16 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
     private boolean mIsJavaCamera = true;
     private MenuItem mItemSwitchCamera = null;
     Bitmap img;
-    Mat imgSrc,imgDst;
+    Mat imgSrc,imgDst1,imgDst2,imgDst;
+
+    int LowH = 0;
+    int LowV = 90;
+    int LowS = 240;
+    int HighH = 15;
+    int HighV = 130;
+    int HighS = 213;
+    Scalar sc1,sc2;
+
 
     static {
         System.loadLibrary("myNativeLibs");
@@ -81,6 +99,9 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        sc1 = new Scalar(LowH,LowS,LowV);
+        sc2 = new Scalar(HighH,HighS,HighV);
     }
 
     @Override
@@ -117,24 +138,56 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
             Utils.bitmapToMat(img,imgSrc);
         }
 
+        imgDst1 = new Mat(width,height, CvType.CV_8UC1);
+        imgDst2 = new Mat(width,height, CvType.CV_8UC1);
         imgDst = new Mat(width,height, CvType.CV_8UC1);
+
     }
 
     public void onCameraViewStopped() {
         imgSrc.release();
+        imgDst1.release();
+        imgDst2.release();
         imgDst.release();
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        if(!IMG)
-            imgSrc = inputFrame.rgba();
 
-        //NativeCpp.convert2Grey(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
+        return detectRed(inputFrame.rgba());
+    }
 
-        Imgproc.resize(imgSrc,imgSrc,inputFrame.rgba().size());
+    public Mat detectRed(Mat input) {
+        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
+        Core.inRange(imgSrc,new Scalar(0, 100, 100),new Scalar(10, 255, 255), imgDst1);
+        Core.inRange(imgSrc,new Scalar(160, 100, 100),new Scalar(179, 255, 255), imgDst2);
+        Core.addWeighted(imgDst1,1.0,imgDst2,1.0,0.0,imgDst);
+        Imgproc.resize(imgDst,imgDst,input.size());
+        return imgDst;
+    }
 
+    public Mat detectBlue(Mat input) {
+        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
+        Core.inRange(imgSrc,new Scalar(100, 50, 0),new Scalar(140, 255, 255), imgDst);
+        //Imgproc.GaussianBlur(imgDst,imgDst,new Size(9, 9), 2, 2);
+        Imgproc.resize(imgDst,imgDst,input.size());
+        return imgDst;
+    }
+
+    public Mat detectyellow(Mat input) {
+        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
+        Core.inRange(imgSrc,new Scalar(20, 100, 100),new Scalar(30, 255, 255), imgDst);
+        //Imgproc.GaussianBlur(imgDst,imgDst,new Size(9, 9), 2, 2);
+        Imgproc.resize(imgDst,imgDst,input.size());
+        return imgDst;
+    }
+
+    public Mat detectShape(Mat input) {
+        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2GRAY);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(imgSrc,contours,new Mat(),RETR_TREE, CHAIN_APPROX_SIMPLE);
+        Log.d("taoufik","" +contours.size());
+        Imgproc.resize(imgSrc,imgSrc,input.size());
         return imgSrc;
-
     }
 }
 

@@ -22,6 +22,9 @@ extern "C" {
 JNIEXPORT jint JNICALL Java_com_example_romio_opencvtest_NativeCpp_convert2Grey
   (JNIEnv *, jclass, jlong, jlong);
 
+JNIEXPORT jint JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectRed
+  (JNIEnv *, jclass, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif
