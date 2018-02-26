@@ -5,6 +5,10 @@ package com.example.romio.opencvtest;
  */
 
 public class NativeCpp {
-    public native static int convert2Grey(long imgSrc ,long imgDst);
-    public native static int detectRed(long imgSrc,long imgDst);
+    public native static void convert2Grey(long imgSrc ,long imgDst);
+    public native static void detectRed(long imgSrc,long imgDst);
+    public native static void detectBlue(long imgSrc,long imgDst);
+    public native static void detectYellow(long imgSrc,long imgDst);
+    public native static void detectContour(long imgSrc,long imgDst);
+
 }

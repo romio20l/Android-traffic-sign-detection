@@ -18,19 +18,12 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.opencv.imgproc.Imgproc.CHAIN_APPROX_SIMPLE;
-import static org.opencv.imgproc.Imgproc.RETR_TREE;
 
 public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
@@ -40,7 +33,7 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
     private boolean mIsJavaCamera = true;
     private MenuItem mItemSwitchCamera = null;
     Bitmap img;
-    Mat imgSrc,imgDst1,imgDst2,imgDst;
+    Mat imgSrc,imgDst1,imgDst2,imgDst,mDst;
 
     int LowH = 0;
     int LowV = 90;
@@ -138,6 +131,7 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
             Utils.bitmapToMat(img,imgSrc);
         }
 
+        mDst = new Mat();
         imgDst1 = new Mat(width,height, CvType.CV_8UC1);
         imgDst2 = new Mat(width,height, CvType.CV_8UC1);
         imgDst = new Mat(width,height, CvType.CV_8UC1);
@@ -153,41 +147,38 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
-        return detectRed(inputFrame.rgba());
-    }
+        imgSrc = inputFrame.rgba();
+        NativeCpp.detectContour(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
+        //Core.bitwise_or(detectyellow(imgSrc.clone()),detectRed(imgSrc.clone()),imgDst1);
+        //Core.bitwise_or(detectyellow(imgSrc.clone()),imgDst1,imgDst2);
+        //NativeCpp.detectContour(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
 
-    public Mat detectRed(Mat input) {
-        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
-        Core.inRange(imgSrc,new Scalar(0, 100, 100),new Scalar(10, 255, 255), imgDst1);
-        Core.inRange(imgSrc,new Scalar(160, 100, 100),new Scalar(179, 255, 255), imgDst2);
-        Core.addWeighted(imgDst1,1.0,imgDst2,1.0,0.0,imgDst);
-        Imgproc.resize(imgDst,imgDst,input.size());
         return imgDst;
     }
 
     public Mat detectBlue(Mat input) {
         Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
         Core.inRange(imgSrc,new Scalar(100, 50, 0),new Scalar(140, 255, 255), imgDst);
-        //Imgproc.GaussianBlur(imgDst,imgDst,new Size(9, 9), 2, 2);
         Imgproc.resize(imgDst,imgDst,input.size());
+        Imgproc.threshold(imgDst,imgDst,100,256,0);
         return imgDst;
     }
 
     public Mat detectyellow(Mat input) {
         Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2HSV);
         Core.inRange(imgSrc,new Scalar(20, 100, 100),new Scalar(30, 255, 255), imgDst);
-        //Imgproc.GaussianBlur(imgDst,imgDst,new Size(9, 9), 2, 2);
         Imgproc.resize(imgDst,imgDst,input.size());
+        Imgproc.threshold(imgDst,imgDst,100,256,0);
         return imgDst;
     }
 
     public Mat detectShape(Mat input) {
-        Imgproc.cvtColor(input,imgSrc,Imgproc.COLOR_RGB2GRAY);
-        List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(imgSrc,contours,new Mat(),RETR_TREE, CHAIN_APPROX_SIMPLE);
-        Log.d("taoufik","" +contours.size());
-        Imgproc.resize(imgSrc,imgSrc,input.size());
-        return imgSrc;
+        NativeCpp.detectContour(input.getNativeObjAddr(),imgDst.getNativeObjAddr());
+        return imgDst;
     }
+
+
+
+
 }
 

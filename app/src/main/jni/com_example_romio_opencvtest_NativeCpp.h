@@ -18,13 +18,38 @@ extern "C" {
  * Signature: (JJ)I
  */
 
+struct Cerc {
+    Point2f center;
+    float radius;
+};
 
-JNIEXPORT jint JNICALL Java_com_example_romio_opencvtest_NativeCpp_convert2Grey
+struct SimpleShapes {
+    Mat img_src;
+    Mat img_dst;
+    Mat img_bw;
+    vector<RotatedRect> rectangles;
+    vector<vector<Point> > triangles;
+    vector<Cerc> cercles;
+};
+
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_convert2Grey
   (JNIEnv *, jclass, jlong, jlong);
 
-JNIEXPORT jint JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectRed
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectRed
   (JNIEnv *, jclass, jlong, jlong);
 
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectBlue
+  (JNIEnv *, jclass, jlong, jlong);
+
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectYellow
+  (JNIEnv *, jclass, jlong, jlong);
+
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectContour
+  (JNIEnv *, jclass, jlong, jlong);
+
+double angleCos(Point , Point , Point );
+
+void setLabel(Mat& , const string , vector<Point>& );
 #ifdef __cplusplus
 }
 #endif
