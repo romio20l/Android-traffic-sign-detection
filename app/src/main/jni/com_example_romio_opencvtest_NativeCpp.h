@@ -47,6 +47,9 @@ JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectYellow
 JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectContour
   (JNIEnv *, jclass, jlong, jlong);
 
+JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detect
+  (JNIEnv *, jclass, jlong, jlong);
+
 double angleCos(Point , Point , Point );
 
 void setLabel(Mat& , const string , vector<Point>& );

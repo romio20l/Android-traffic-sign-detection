@@ -12,6 +12,31 @@ JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_convert2Grey
         cvtColor(mSrc,mDst,CV_RGB2GRAY);
   }
 
+  JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detect
+    (JNIEnv *, jclass, jlong imgSrc, jlong imgDst) {
+          Mat& mSrc = *(Mat*)imgSrc;
+          Mat& mDst = *(Mat*)imgDst;
+
+          String stop_cascade_name = "/sdcard/lbpCascade.xml";
+
+          cvtColor(mSrc,mDst,CV_RGB2GRAY);
+
+          vector<cv::Rect> objects;
+
+          CascadeClassifier cascade;
+          cascade.load(stop_cascade_name);
+
+          cascade.detectMultiScale(mDst, objects, 1.1, 3, 0,Size(25,25), Size(80, 80));
+
+          for( vector<cv::Rect>::const_iterator r = objects.begin(); r != objects.end(); r++)
+              {            //rectangle(img, *r, Scalar(0,0,255), 2, 8, 0);
+                           rectangle( mSrc, cvPoint( r->x, r->y ), cvPoint( r->x + r->width, r->y + r->height ),Scalar(0,0,255));
+              }
+
+              mDst = mSrc;
+
+    }
+
 JNIEXPORT void JNICALL Java_com_example_romio_opencvtest_NativeCpp_detectContour
   (JNIEnv *, jclass, jlong imgSrc, jlong imgDst) {
 

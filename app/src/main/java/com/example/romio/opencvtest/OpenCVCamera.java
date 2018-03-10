@@ -44,8 +44,20 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
     Scalar sc1,sc2;
 
 
+
     static {
-        System.loadLibrary("myNativeLibs");
+        try {
+            System.loadLibrary("myNativeLibs");
+            System.loadLibrary("gnustl_shared");
+            System.loadLibrary("fann-test");
+        } catch (UnsatisfiedLinkError e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    static {
+
     }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -148,7 +160,7 @@ public class OpenCVCamera extends Activity implements CameraBridgeViewBase.CvCam
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         imgSrc = inputFrame.rgba();
-        NativeCpp.detectContour(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
+        NativeCpp.detect(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());
         //Core.bitwise_or(detectyellow(imgSrc.clone()),detectRed(imgSrc.clone()),imgDst1);
         //Core.bitwise_or(detectyellow(imgSrc.clone()),imgDst1,imgDst2);
         //NativeCpp.detectContour(imgSrc.getNativeObjAddr(),imgDst.getNativeObjAddr());

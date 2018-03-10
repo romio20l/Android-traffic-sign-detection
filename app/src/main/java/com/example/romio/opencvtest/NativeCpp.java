@@ -10,5 +10,6 @@ public class NativeCpp {
     public native static void detectBlue(long imgSrc,long imgDst);
     public native static void detectYellow(long imgSrc,long imgDst);
     public native static void detectContour(long imgSrc,long imgDst);
+    public native static void detect(long imgSrc,long imgDst);
 
 }
